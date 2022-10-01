@@ -1,25 +1,22 @@
 import {
+  BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { TasksStatus } from './enum/status';
 
-@Entity('tasks')
-export class Task {
+@Entity()
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  title: string;
+  username: string;
 
   @Column()
-  description: string;
-
-  @Column({ default: TasksStatus.OPEN })
-  status: TasksStatus;
+  password: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
