@@ -20,10 +20,12 @@ export class TasksService {
     if (search) {
       query.andWhere(
         new Brackets((qb) => {
-          qb.where('tasks.description like :search', {
+          qb.where('LOWER(tasks.description) like LOWER(:search)', {
             search: `%${search}%`,
           });
-          qb.orWhere('tasks.title like :search', { search: `%${search}%` });
+          qb.orWhere('LOWER(tasks.title) like LOWER(:search)', {
+            search: `%${search}%`,
+          });
         }),
       );
     }
