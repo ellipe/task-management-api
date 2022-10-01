@@ -3,7 +3,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
-import { Repository } from 'typeorm';
+import { Brackets, Like, Repository } from 'typeorm';
 import { TasksStatus } from './enum/status';
 
 @Injectable()
@@ -13,20 +13,23 @@ export class TasksService {
     private taskRepository: Repository<Task>,
   ) {}
 
-  // getTasks(filterDto: GetTasksFilterDto): Task[] {
-  //   const { status, search } = filterDto;
-  //   let filteredTasks = this.tasks;
-  //   if (status)
-  //     filteredTasks = filteredTasks.filter((task) => task.status === status);
+  getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
+    const { status, search } = filterDto;
+    const query = this.taskRepository.createQueryBuilder('tasks');
+    if (status) query.andWhere('tasks.status = :status', { status });
+    if (search) {
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('tasks.description like :search', {
+            search: `%${search}%`,
+          });
+          qb.orWhere('tasks.title like :search', { search: `%${search}%` });
+        }),
+      );
+    }
 
-  //   if (search)
-  //     filteredTasks = filteredTasks.filter(
-  //       (task) =>
-  //         task.title.includes(search) || task.description.includes(search),
-  //     );
-
-  //   return filteredTasks;
-  // }
+    return query.getMany();
+  }
 
   async getTaskById(id: string): Promise<Task> {
     const task = await this.taskRepository.findOneBy({ id });
