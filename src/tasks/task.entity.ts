@@ -1,7 +1,10 @@
+import { User } from 'src/auth/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -20,6 +23,10 @@ export class Task {
 
   @Column({ default: TasksStatus.OPEN })
   status: TasksStatus;
+
+  @ManyToOne((_type) => User, (user) => user.tasks, { eager: false })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
