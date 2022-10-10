@@ -14,9 +14,10 @@ export class TasksService {
     private taskRepository: Repository<Task>,
   ) {}
 
-  getTasks(filterDto: GetTasksFilterDto): Promise<Task[]> {
+  getTasks(filterDto: GetTasksFilterDto, user: User): Promise<Task[]> {
     const { status, search } = filterDto;
     const query = this.taskRepository.createQueryBuilder('tasks');
+    query.andWhere({ user });
     if (status) query.andWhere('tasks.status = :status', { status });
     if (search) {
       query.andWhere(
@@ -34,8 +35,10 @@ export class TasksService {
     return query.getMany();
   }
 
-  async getTaskById(id: string): Promise<Task> {
-    const task = await this.taskRepository.findOneBy({ id });
+  async getTaskById(id: string, user: User): Promise<Task> {
+    const task = await this.taskRepository.findOne({
+      where: { id, user: { id: user.id } },
+    });
     if (!task) throw new NotFoundException(`Task with id: ${id} not found`);
 
     return task;
@@ -49,13 +52,17 @@ export class TasksService {
     return this.taskRepository.save(task);
   }
 
-  async deleteTask(id: string) {
-    const task = await this.getTaskById(id);
+  async deleteTask(id: string, user: User) {
+    const task = await this.getTaskById(id, user);
     return this.taskRepository.delete(task);
   }
 
-  async updateTaskStatus(id: string, status: TasksStatus): Promise<Task> {
-    const task = await this.getTaskById(id);
+  async updateTaskStatus(
+    id: string,
+    status: TasksStatus,
+    user: User,
+  ): Promise<Task> {
+    const task = await this.getTaskById(id, user);
     const updatedTask = { ...task, status };
 
     return this.taskRepository.save(updatedTask);
